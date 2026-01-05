@@ -44,49 +44,31 @@ export default function ChatPage() {
     setInput('');
     setIsLoading(true);
 
-    // Simple keyword-based response with database lookup
-    const query = input.toLowerCase();
-    let response = '';
-    let suggestedLinks: { title: string; url: string }[] = [];
-
     try {
-      if (query.includes('advising') || query.includes('advisor') || query.includes('class') || query.includes('schedule')) {
-        const { data } = await supabase.from('resources').select('*').ilike('title', '%advising%').limit(1);
-        response = "I can help you find the right office for academic guidance! For specific class planning and degree requirements, I recommend confirming with an academic advisor directly.";
-        if (data && data[0]) {
-          suggestedLinks = [{ title: data[0].title, url: `/app/resources/${data[0].id}` }];
-        }
-      } else if (query.includes('mental health') || query.includes('counseling') || query.includes('stress')) {
-        const { data } = await supabase.from('resources').select('*').overlaps('tags', ['mental health', 'wellness', 'counseling']).limit(2);
-        response = "Your mental health matters! UNLV has great resources to support your wellbeing.";
-        suggestedLinks = (data || []).map(r => ({ title: r.title, url: `/app/resources/${r.id}` }));
-      } else if (query.includes('career') || query.includes('job') || query.includes('internship')) {
-        const { data } = await supabase.from('resources').select('*').overlaps('tags', ['career', 'jobs', 'internship']).limit(2);
-        response = "Looking to launch your career? Check out these resources for resume help, interview prep, and job opportunities!";
-        suggestedLinks = (data || []).map(r => ({ title: r.title, url: `/app/resources/${r.id}` }));
-      } else if (query.includes('event') || query.includes('happening')) {
-        const { data } = await supabase.from('events').select('*').gte('start_time', new Date().toISOString()).order('start_time').limit(3);
-        response = "Here are some upcoming events at UNLV!";
-        suggestedLinks = (data || []).map(e => ({ title: e.title, url: `/app/events/${e.id}` }));
-      } else if (query.includes('club') || query.includes('organization') || query.includes('join')) {
-        const { data } = await supabase.from('clubs').select('*').limit(3);
-        response = "Looking to get involved? Here are some clubs you might like!";
-        suggestedLinks = (data || []).map(c => ({ title: c.name, url: `/app/clubs/${c.id}` }));
-      } else {
-        response = "I can help you find resources, events, and clubs at UNLV! Try asking about mental health services, career help, upcoming events, or student organizations.";
-      }
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: { message: input.trim(), userId: profile?.id },
+      });
+
+      if (error) throw error;
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.message,
+        suggestedLinks: data.suggestedLinks,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      response = "I'm having trouble right now. Please try again!";
+      console.error('Chat error:', error);
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm having trouble right now. Please try again!",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     }
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: response,
-      suggestedLinks,
-    };
-
-    setMessages((prev) => [...prev, assistantMessage]);
     setIsLoading(false);
   };
 
@@ -107,7 +89,7 @@ export default function ChatPage() {
                 </div>
               )}
               <div className={`max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-2xl px-4 py-3`}>
-                <p className="text-sm">{message.content}</p>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 {message.suggestedLinks && message.suggestedLinks.length > 0 && (
                   <div className="mt-3 space-y-2">
                     <p className="text-xs font-medium opacity-70">Suggested:</p>
