@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { FeedbackModal } from "@/components/FeedbackModal";
 
 // Pages
 import LandingPage from "./pages/Landing";
@@ -15,7 +16,17 @@ import ExplorePage from "./pages/app/Explore";
 import ChatPage from "./pages/app/Chat";
 import SavedPage from "./pages/app/Saved";
 import ProfilePage from "./pages/app/Profile";
+import ResourceDetailPage from "./pages/app/ResourceDetail";
+import EventDetailPage from "./pages/app/EventDetail";
+import ClubDetailPage from "./pages/app/ClubDetail";
 import NotFound from "./pages/NotFound";
+
+// Admin Pages
+import AdminDashboard from "./pages/admin/Dashboard";
+import ResourcesAdmin from "./pages/admin/ResourcesAdmin";
+import EventsAdmin from "./pages/admin/EventsAdmin";
+import ClubsAdmin from "./pages/admin/ClubsAdmin";
+import FeedbackAdmin from "./pages/admin/FeedbackAdmin";
 
 const queryClient = new QueryClient();
 
@@ -64,10 +75,53 @@ const App = () => (
                 <ProfilePage />
               </ProtectedRoute>
             } />
+            <Route path="/app/resources/:id" element={
+              <ProtectedRoute>
+                <ResourceDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/app/events/:id" element={
+              <ProtectedRoute>
+                <EventDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/app/clubs/:id" element={
+              <ProtectedRoute>
+                <ClubDetailPage />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/resources" element={
+              <ProtectedRoute requireAdmin>
+                <ResourcesAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/events" element={
+              <ProtectedRoute requireAdmin>
+                <EventsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/clubs" element={
+              <ProtectedRoute requireAdmin>
+                <ClubsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/feedback" element={
+              <ProtectedRoute requireAdmin>
+                <FeedbackAdmin />
+              </ProtectedRoute>
+            } />
             
             {/* Catch all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <FeedbackModal />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
