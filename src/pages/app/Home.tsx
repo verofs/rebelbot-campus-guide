@@ -35,7 +35,7 @@ interface Club {
 }
 
 const quickFilters = [
-  'Mental Health', 'Career', 'Financial', 'Tutoring', 'International', 'Research'
+  'Mindfulness', 'Career', 'Financial', 'Tutoring', 'International', 'Research'
 ];
 
 export default function HomePage() {
