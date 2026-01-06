@@ -46,34 +46,37 @@ export function DesktopSidebar({ currentPath }: DesktopSidebarProps) {
           const active = isActive(item.path);
           
           return (
-            <Link key={item.path} to={item.path}>
-              <Button
-                variant={active ? "nav-active" : "nav"}
-                className={cn(
-                  "w-full justify-start gap-3 h-11",
-                  active && "shadow-sm"
-                )}
-              >
+            <Button
+              key={item.path}
+              variant={active ? "nav-active" : "nav"}
+              className={cn(
+                "w-full justify-start gap-3 h-11",
+                active && "shadow-sm"
+              )}
+              asChild
+            >
+              <Link to={item.path}>
                 <Icon className="h-5 w-5" />
                 {item.label}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           );
         })}
         
         {isAdmin && (
-          <Link to="/admin">
-            <Button
-              variant={currentPath.startsWith('/admin') ? "nav-active" : "nav"}
-              className={cn(
-                "w-full justify-start gap-3 h-11 mt-4",
-                currentPath.startsWith('/admin') && "shadow-sm"
-              )}
-            >
+          <Button
+            variant={currentPath.startsWith('/admin') ? "nav-active" : "nav"}
+            className={cn(
+              "w-full justify-start gap-3 h-11 mt-4",
+              currentPath.startsWith('/admin') && "shadow-sm"
+            )}
+            asChild
+          >
+            <Link to="/admin">
               <Shield className="h-5 w-5" />
               Admin
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         )}
       </nav>
 
