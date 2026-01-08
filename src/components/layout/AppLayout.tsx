@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, forwardRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DesktopSidebar } from './DesktopSidebar';
 import { MobileNav } from './MobileNav';
@@ -7,11 +7,11 @@ interface AppLayoutProps {
   children: ReactNode;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export const AppLayout = forwardRef<HTMLDivElement, AppLayoutProps>(function AppLayout({ children }, ref) {
   const location = useLocation();
   
   return (
-    <div className="min-h-screen bg-background flex w-full">
+    <div ref={ref} className="min-h-screen bg-background flex w-full">
       {/* Desktop Sidebar */}
       <DesktopSidebar currentPath={location.pathname} />
       
@@ -26,4 +26,4 @@ export function AppLayout({ children }: AppLayoutProps) {
       <MobileNav currentPath={location.pathname} />
     </div>
   );
-}
+});
