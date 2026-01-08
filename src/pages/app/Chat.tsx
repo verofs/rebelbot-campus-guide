@@ -122,17 +122,35 @@ const ChatPage = forwardRef<HTMLDivElement>(function ChatPage(_, ref) {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex gap-2 pt-4 border-t border-border">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about resources, events, clubs..."
-            className="h-12 rounded-xl"
-          />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-12 w-12 rounded-xl">
-            <Send className="h-5 w-5" />
-          </Button>
+        <div className="pt-4 border-t border-border space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {['Find tutoring', 'Upcoming events', 'All RSOs', 'Mental health resources', 'Career help'].map((suggestion) => (
+              <Button
+                key={suggestion}
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs"
+                onClick={() => {
+                  setInput(suggestion);
+                }}
+                disabled={isLoading}
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Ask about resources, events, clubs..."
+              className="h-12 rounded-xl"
+            />
+            <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-12 w-12 rounded-xl">
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </AppLayout>
