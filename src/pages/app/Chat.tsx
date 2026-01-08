@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ interface Message {
   suggestedLinks?: { title: string; url: string }[];
 }
 
-export default function ChatPage() {
+const ChatPage = forwardRef<HTMLDivElement>(function ChatPage(_, ref) {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -137,4 +137,6 @@ export default function ChatPage() {
       </div>
     </AppLayout>
   );
-}
+});
+
+export default ChatPage;
