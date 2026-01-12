@@ -38,7 +38,8 @@ interface Club {
 
 const resourceCategories = ['All', 'Academic', 'Health & Wellness', 'Career', 'Financial', 'Student Services', 'Basic Needs'];
 const eventFilters = ['All', 'Today', 'This Week', 'This Month'];
-const clubCategories = ['All', 'Academic', 'Social', 'Professional', 'Cultural', 'Sports'];
+const clubCategories = ['All', 'Academic', 'Social', 'Professional', 'Cultural'];
+const popularTags = ['engineering', 'technology', 'health', 'business', 'stem', 'pre-med', 'arts', 'science'];
 
 export default function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,6 +48,7 @@ export default function ExplorePage() {
   const [resourceCategory, setResourceCategory] = useState('All');
   const [eventFilter, setEventFilter] = useState('All');
   const [clubCategory, setClubCategory] = useState('All');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   
   const [resources, setResources] = useState<Resource[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -55,7 +57,7 @@ export default function ExplorePage() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, resourceCategory, eventFilter, clubCategory, searchQuery]);
+  }, [activeTab, resourceCategory, eventFilter, clubCategory, searchQuery, selectedTag]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -112,6 +114,10 @@ export default function ExplorePage() {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
       
+      if (selectedTag) {
+        query = query.contains('tags', [selectedTag]);
+      }
+      
       const { data } = await query;
       setClubs(data || []);
     }
@@ -134,6 +140,7 @@ export default function ExplorePage() {
     setActiveTab(value);
     setSearchParams({ tab: value });
     setSearchQuery('');
+    setSelectedTag(null);
   };
 
   return (
@@ -284,17 +291,36 @@ export default function ExplorePage() {
 
           {/* Clubs Tab */}
           <TabsContent value="clubs" className="mt-4 space-y-4">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-              {clubCategories.map((cat) => (
-                <Button
-                  key={cat}
-                  variant={clubCategory === cat ? "default" : "chip"}
-                  size="chip"
-                  onClick={() => setClubCategory(cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
+            <div className="space-y-3">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                {clubCategories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={clubCategory === cat ? "default" : "chip"}
+                    size="chip"
+                    onClick={() => setClubCategory(cat)}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+                <span className="text-xs text-muted-foreground shrink-0 self-center">Tags:</span>
+                {popularTags.map((tag) => (
+                  <Button
+                    key={tag}
+                    variant={selectedTag === tag ? "secondary" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "rounded-full text-xs h-7 px-3",
+                      selectedTag === tag && "bg-primary/10 border-primary/30 text-primary"
+                    )}
+                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                  >
+                    #{tag}
+                  </Button>
+                ))}
+              </div>
             </div>
             
             {isLoading ? (
@@ -302,7 +328,9 @@ export default function ExplorePage() {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : clubs.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2">
+              <>
+                <p className="text-sm text-muted-foreground">{clubs.length} club{clubs.length !== 1 ? 's' : ''} found</p>
+                <div className="grid gap-3 md:grid-cols-2">
                 {clubs.map((club) => (
                   <Link key={club.id} to={`/app/clubs/${club.id}`}>
                     <div className="p-4 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-md transition-all h-full">
@@ -327,7 +355,8 @@ export default function ExplorePage() {
                     </div>
                   </Link>
                 ))}
-              </div>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No clubs found</p>
