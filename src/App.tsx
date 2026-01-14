@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import ResourcesAdmin from "./pages/admin/ResourcesAdmin";
 import EventsAdmin from "./pages/admin/EventsAdmin";
 import ClubsAdmin from "./pages/admin/ClubsAdmin";
+import ClubPostsAdmin from "./pages/admin/ClubPostsAdmin";
 import FeedbackAdmin from "./pages/admin/FeedbackAdmin";
 
 const queryClient = new QueryClient();
@@ -110,6 +111,11 @@ const App = () => (
             <Route path="/admin/clubs" element={
               <ProtectedRoute requireAdmin>
                 <ClubsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/club-posts" element={
+              <ProtectedRoute requireAdmin>
+                <ClubPostsAdmin />
               </ProtectedRoute>
             } />
             <Route path="/admin/feedback" element={

@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
-import { FileText, Calendar, Users, MessageSquare, Loader2 } from 'lucide-react';
+import { FileText, Calendar, Users, MessageSquare, Megaphone, Loader2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     resources: 0,
     events: 0,
     clubs: 0,
+    clubPosts: 0,
     feedback: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [resources, events, clubs, feedback] = await Promise.all([
+      const [resources, events, clubs, clubPosts, feedback] = await Promise.all([
         supabase.from('resources').select('id', { count: 'exact', head: true }),
         supabase.from('events').select('id', { count: 'exact', head: true }),
         supabase.from('clubs').select('id', { count: 'exact', head: true }),
+        supabase.from('club_posts').select('id', { count: 'exact', head: true }),
         supabase.from('feedback').select('id', { count: 'exact', head: true }),
       ]);
       
@@ -25,6 +27,7 @@ export default function AdminDashboard() {
         resources: resources.count || 0,
         events: events.count || 0,
         clubs: clubs.count || 0,
+        clubPosts: clubPosts.count || 0,
         feedback: feedback.count || 0,
       });
       setIsLoading(false);
@@ -37,6 +40,7 @@ export default function AdminDashboard() {
     { label: 'Resources', value: stats.resources, icon: FileText, color: 'text-blue-500' },
     { label: 'Events', value: stats.events, icon: Calendar, color: 'text-green-500' },
     { label: 'Clubs', value: stats.clubs, icon: Users, color: 'text-purple-500' },
+    { label: 'Club Posts', value: stats.clubPosts, icon: Megaphone, color: 'text-pink-500' },
     { label: 'Feedback', value: stats.feedback, icon: MessageSquare, color: 'text-orange-500' },
   ];
 

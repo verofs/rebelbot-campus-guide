@@ -2,9 +2,17 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useBookmark } from '@/hooks/useBookmark';
-import { ArrowLeft, Users, Mail, Clock, ExternalLink, Bookmark, Loader2 } from 'lucide-react';
+import { useFollow } from '@/hooks/useFollow';
+import { ClubPosts } from '@/components/club/ClubPosts';
+import { ClubEvents } from '@/components/club/ClubEvents';
+import { ClubChat } from '@/components/club/ClubChat';
+import { 
+  ArrowLeft, Users, Mail, Clock, ExternalLink, Bookmark, Loader2, 
+  UserPlus, UserMinus, FileText, Calendar, MessageCircle 
+} from 'lucide-react';
 
 interface Club {
   id: string;
@@ -15,13 +23,16 @@ interface Club {
   contact_email: string | null;
   url: string | null;
   tags: string[];
+  image_url: string | null;
 }
 
 export default function ClubDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [club, setClub] = useState<Club | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('posts');
   const { isBookmarked, toggleBookmark } = useBookmark('club', id || '');
+  const { isFollowing, isLoading: followLoading, followerCount, toggleFollow } = useFollow(id || '');
 
   useEffect(() => {
     if (!id) return;
@@ -72,25 +83,69 @@ export default function ClubDetailPage() {
           Back to Clubs
         </Link>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-accent text-accent-foreground font-medium mb-2">
-              {club.category}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              {club.name}
-            </h1>
+        {/* Club Header */}
+        <div className="relative">
+          {club.image_url && (
+            <div className="h-32 md:h-40 rounded-xl overflow-hidden mb-4 bg-muted">
+              <img 
+                src={club.image_url} 
+                alt={club.name} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-xl bg-accent flex items-center justify-center shrink-0 -mt-8 border-4 border-background relative z-10">
+                <Users className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-accent text-accent-foreground font-medium mb-1">
+                  {club.category}
+                </span>
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                  {club.name}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {followerCount} follower{followerCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant={isBookmarked ? "default" : "outline"}
+                size="icon"
+                onClick={toggleBookmark}
+              >
+                <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
           </div>
-          <Button
-            variant={isBookmarked ? "default" : "outline"}
-            size="icon"
-            onClick={toggleBookmark}
-            className="shrink-0"
-          >
-            <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
-          </Button>
         </div>
+
+        {/* Follow Button */}
+        <Button
+          onClick={toggleFollow}
+          disabled={followLoading}
+          className="w-full gap-2"
+          variant={isFollowing ? "outline" : "default"}
+        >
+          {followLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isFollowing ? (
+            <>
+              <UserMinus className="h-4 w-4" />
+              Following
+            </>
+          ) : (
+            <>
+              <UserPlus className="h-4 w-4" />
+              Follow
+            </>
+          )}
+        </Button>
 
         {/* Description */}
         {club.description && (
@@ -138,12 +193,53 @@ export default function ClubDetailPage() {
         {/* External Link */}
         {club.url && (
           <a href={club.url} target="_blank" rel="noopener noreferrer">
-            <Button className="w-full gap-2">
+            <Button variant="outline" className="w-full gap-2">
               <ExternalLink className="h-4 w-4" />
               Visit Club Page
             </Button>
           </a>
         )}
+
+        {/* Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+          <TabsList className="w-full justify-start h-auto p-1 bg-secondary rounded-xl">
+            <TabsTrigger 
+              value="posts" 
+              className="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <FileText className="h-4 w-4" />
+              Posts
+            </TabsTrigger>
+            <TabsTrigger 
+              value="events" 
+              className="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <Calendar className="h-4 w-4" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger 
+              value="chat" 
+              className="flex-1 gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Chat
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="posts" className="mt-4">
+            <ClubPosts clubId={id || ''} />
+          </TabsContent>
+
+          <TabsContent value="events" className="mt-4">
+            <ClubEvents clubName={club.name} />
+          </TabsContent>
+
+          <TabsContent value="chat" className="mt-4">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <ClubChat clubId={id || ''} isFollowing={isFollowing} />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

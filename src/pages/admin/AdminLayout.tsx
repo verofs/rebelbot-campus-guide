@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
-import { LayoutDashboard, FileText, Calendar, Users, MessageSquare, ArrowLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar, Users, MessageSquare, ArrowLeft, LogOut, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AdminLayoutProps {
@@ -14,6 +14,7 @@ const navItems = [
   { path: '/admin/resources', icon: FileText, label: 'Resources' },
   { path: '/admin/events', icon: Calendar, label: 'Events' },
   { path: '/admin/clubs', icon: Users, label: 'Clubs' },
+  { path: '/admin/club-posts', icon: Megaphone, label: 'Club Posts' },
   { path: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
 ];
 
