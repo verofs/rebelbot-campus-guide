@@ -388,7 +388,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      resources_public: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          hours: string | null
+          id: string | null
+          image_url: string | null
+          location: string | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours?: string | null
+          id?: string | null
+          image_url?: string | null
+          location?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          hours?: string | null
+          id?: string | null
+          image_url?: string | null
+          location?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
