@@ -46,7 +46,7 @@ const ChatPage = forwardRef<HTMLDivElement>(function ChatPage(_, ref) {
 
     try {
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: input.trim(), userId: profile?.id },
+        body: { message: input.trim() },
       });
 
       if (error) throw error;

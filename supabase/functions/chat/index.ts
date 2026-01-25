@@ -11,16 +11,62 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message, userId } = await req.json();
-
     // Create Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    // Validate authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    // Create client with user's auth token for user verification
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify the user's token using getClaims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Parse request body - only need message now
+    const { message } = await req.json();
+    
+    if (!message || typeof message !== "string" || message.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Message is required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Validate message length
+    if (message.length > 2000) {
+      return new Response(
+        JSON.stringify({ error: "Message too long (max 2000 characters)" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Create service role client for database queries
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch relevant data from database
     const [resourcesRes, eventsRes, clubsRes] = await Promise.all([
-      supabase.from("resources").select("id, title, description, category, tags").limit(15),
+      supabase.from("resources_public").select("id, title, description, category, tags").limit(15),
       supabase.from("events").select("id, title, description, start_time, location, tags").gte("start_time", new Date().toISOString()).order("start_time").limit(10),
       supabase.from("clubs").select("id, name, description, category, tags").limit(15),
     ]);
@@ -66,7 +112,7 @@ RESPONSE GUIDELINES:
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: context },
-          { role: "user", content: message },
+          { role: "user", content: message.trim() },
         ],
         temperature: 0.7,
         max_tokens: 500,
@@ -96,8 +142,8 @@ RESPONSE GUIDELINES:
 
     // Transform suggested links to include proper URLs
     const suggestedLinks = (parsedResponse.suggestedLinks || []).map((link: any) => ({
-      title: link.title,
-      url: `/app/${link.type}s/${link.id}`,
+      title: String(link.title || ""),
+      url: `/app/${String(link.type || "resource")}s/${String(link.id || "")}`,
     }));
 
     return new Response(
